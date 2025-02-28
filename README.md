@@ -1,3 +1,36 @@
+# Setup
+
+## Clone the repository
+```bash
+git clone https://github.com/shwetkamal-gaud/report-viewer.git
+```
+## Change the diractory
+```bash
+cd report-viewer
+```
+
+## Install the dependencies
+```bash
+npm install
+```
+
+## Run the development server
+```bash
+npm run dev
+```
+
+# Tech stack
+**React + Vite + TypeScript**
+**React-PDF-Viewer**
+**TailwindCSS**
+**Framer Motion**
+
+# Deployed link
+```bash
+https://report-viewer-plqk.vercel.app/
+```
+
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

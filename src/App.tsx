@@ -78,6 +78,7 @@ const App = () => {
             <Viewer fileUrl={pdfUrl} />
           </Worker>
         </motion.div>
+
        
         <div className="w-1/4 p-4 border-l max-h-screen overflow-y-auto">
           <h2 className="text-lg font-semibold">Highlights</h2>

@@ -19,5 +19,6 @@ export const saveSession = async (key: string, value: any) => {
 
 export const loadSession = async (key: string) => {
     const db = await initDB();
+    console.log(key)
     return await db.get(STORE_NAME, key);
 };

@@ -18,7 +18,7 @@ const App = () => {
       const savedHighlights = await loadSession("highlights");
       const savedNotes = await loadSession("notes");
 
-  
+
       const localHighlights = localStorage.getItem("highlights");
       const localNotes = localStorage.getItem("notes");
 
@@ -75,25 +75,25 @@ const App = () => {
   };
 
   return (
-    <div className="p-5 bg-white text-black h-screen" onMouseUp={handleTextSelect}>
-      <h1 className="text-2xl font-bold mb-4">Annual Report Viewer</h1>
-
-      <div className="flex max-h-[100%]">
-        <motion.div
-          className="border p-2 w-3/4 overflow-auto relative"
-          style={{
-            border: '1px solid rgba(0, 0, 0, 0.3)',
-            height: '60vh',
-          }}
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Worker workerUrl={"https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js"}>
-            <Viewer fileUrl={pdfUrl} />
-          </Worker>
-        </motion.div>
-
+    <div className="p-5 bg-white grid md:grid-cols-2 w-full gap-5 grid-cols-1 text-black h-screen" onMouseUp={handleTextSelect}>
+      <div className="flex flex-col ">
+        <h1 className="text-2xl font-bold mb-4">Annual Report Viewer</h1>
+        <div className="flex max-h-[100%]">
+          <motion.div
+            className="border p-2 w-3/4 overflow-auto relative"
+            style={{
+              border: '1px solid rgba(0, 0, 0, 0.3)',
+              height: '60vh',
+            }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Worker workerUrl={"https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js"}>
+              <Viewer fileUrl={pdfUrl} />
+            </Worker>
+          </motion.div>
+        </div>
         {showTooltip && tooltipPosition && (
           <div
             className="absolute top-0 bg-gray-800 text-white px-2 py-1 rounded shadow-lg"
@@ -103,61 +103,66 @@ const App = () => {
             <button className="ml-2 bg-gray-600 px-2 py-1 rounded" onClick={() => setShowTooltip(false)}>No</button>
           </div>
         )}
-        <div className="w-1/4 p-4 border-l max-h-screen overflow-y-auto">
-          <h2 className="text-lg font-semibold">Highlights</h2>
-          <ul className="list-disc pl-4">
-            {highlights.map((highlight, index) => (
-              <li key={index} className="bg-yellow-200 p-2 my-1 flex justify-between items-center">
-                {highlight.text}
-                <button onClick={() => removeHighlight(index)} className="text-red-500 ml-2">❌</button>
-              </li>
-            ))}
-          </ul>
-          <h2 className="text-lg font-semibold mt-4">Notes</h2>
-          <ul className="list-disc pl-4">
-            {notes.map((note, index) => (
-              <motion.li
-                key={index}
-                className="bg-blue-200 p-2 my-1 flex justify-between items-center"
-                whileHover={{ scale: 1.05 }}
-              >
-                <input
-                  type="text"
-                  className="bg-transparent border-b border-black"
-                  value={note.text}
-                  onChange={(e) => {
-                    const updatedNotes = [...notes];
-                    updatedNotes[index].text = e.target.value;
-                    setNotes(updatedNotes);
-                  }}
-                />
-                <button onClick={() => setNotes(notes.filter((_, i) => i !== index))} className="text-red-500 ml-2">X</button>
-              </motion.li>
-            ))}
-          </ul>
-
-          <h2 className="text-lg font-semibold mt-4">Add a Note</h2>
+      </div>
+      <div className="p-4  max-h-screen overflow-y-auto">
+        <div className="grid md:grid-cols-2 gap-3 grid-cols-1">
           <div className="flex flex-col gap-2">
-            <input type="text" className="border p-2" placeholder="Enter your note..." id="noteText" />
-            <input type="number" className="border p-2" placeholder="Page Number" id="notePage" />
-            <button
-              className="bg-blue-500 text-white p-2"
-              onClick={() => {
-                const noteText = (document.getElementById("noteText") as HTMLInputElement).value;
-                const notePage = parseInt((document.getElementById("notePage") as HTMLInputElement).value);
-                if (noteText && notePage) {
-                  handleAddNote(noteText, notePage);
-                  (document.getElementById("noteText") as HTMLInputElement).value = "";
-                  (document.getElementById("notePage") as HTMLInputElement).value = "";
-                }
-              }}
-            >
-             Add Note
-            </button>
+            <h2 className="text-lg font-semibold">Highlights</h2>
+            <ul className="list-disc pl-4">
+              {highlights.map((highlight, index) => (
+                <li key={index} className="bg-yellow-200 p-2 my-1 flex justify-between items-center">
+                  {highlight.text}
+                  <button onClick={() => removeHighlight(index)} className="text-red-500 ml-2">❌</button>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="flex flex-col gap-2">
+            <h2 className="text-lg font-semibold">Notes</h2>
+            <ul className="list-disc pl-4">
+              {notes.map((note, index) => (
+                <motion.li
+                  key={index}
+                  className="bg-blue-200 p-2 my-1 flex justify-between items-center"
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <input
+                    type="text"
+                    className="bg-transparent border-b border-black"
+                    value={note.text}
+                    onChange={(e) => {
+                      const updatedNotes = [...notes];
+                      updatedNotes[index].text = e.target.value;
+                      setNotes(updatedNotes);
+                    }}
+                  />
+                  <button onClick={() => setNotes(notes.filter((_, i) => i !== index))} className="text-red-500 ml-2">X</button>
+                </motion.li>
+              ))}
+            </ul>
           </div>
         </div>
+
+        <h2 className="text-lg font-semibold mt-4">Add a Note</h2>
+        <div className="flex flex-col gap-2">
+          <input type="text" className="border p-2" placeholder="Enter your note..." id="noteText" />
+          <input type="number" className="border p-2" placeholder="Page Number" id="notePage" />
+          <button
+            className="bg-blue-500 rounded-lg text-white p-2"
+            onClick={() => {
+              const noteText = (document.getElementById("noteText") as HTMLInputElement).value;
+              const notePage = parseInt((document.getElementById("notePage") as HTMLInputElement).value);
+              if (noteText && notePage) {
+                handleAddNote(noteText, notePage);
+                (document.getElementById("noteText") as HTMLInputElement).value = "";
+                (document.getElementById("notePage") as HTMLInputElement).value = "";
+              }
+            }}
+          >
+            Add Note
+          </button>
+        </div>
       </div>
-      
     </div>
   );
 };

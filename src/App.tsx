@@ -1,35 +1,149 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import { Worker, Viewer } from "@react-pdf-viewer/core";
+import "@react-pdf-viewer/core/lib/styles/index.css";
+import { saveSession, loadSession } from "./db";
+import localPdf from "./assets/Report.pdf";
+import { motion } from "framer-motion";
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const [pdfUrl, setPdfUrl] = useState<string>(localPdf);
+  const [highlights, setHighlights] = useState<{ text: string; position: { x: number; y: number } }[]>([]);
+  const [notes, setNotes] = useState<{ text: string; page: number }[]>([]);
+  const [selectedText, setSelectedText] = useState<string | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null);
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  useEffect(() => {
+    loadSession("highlights").then((data) => setHighlights(data || []));
+    loadSession("notes").then((data) => setNotes(data || []));
+  }, []);
+
+  useEffect(() => {
+    saveSession("highlights", highlights);
+    saveSession("notes", notes);
+  }, [highlights, notes]);
+
+  const handleTextSelect = () => {
+    const selection = window.getSelection();
+    const text = selection?.toString().trim();
+
+    if (text && selection?.rangeCount) {
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+
+      if (rect.width > 0 && rect.height > 0) {
+        setSelectedText(text);
+        setTooltipPosition({
+          x: rect.left + window.scrollX,
+          y: rect.top + window.scrollY - 30,
+        });
+        setShowTooltip(true);
+      }
+    } else {
+      setShowTooltip(false);
+    }
+  };
+
+  const addHighlight = () => {
+    if (selectedText && tooltipPosition) {
+      setHighlights([...highlights, { text: selectedText, position: tooltipPosition }]);
+      setShowTooltip(false);
+    }
+  };
+
+  const removeHighlight = (index: number) => {
+    setHighlights(highlights.filter((_, i) => i !== index));
+  };
+
+  const handleAddNote = (text: string, page: number) => {
+    setNotes([...notes, { text, page }]);
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div className="p-5 bg-white text-black h-screen" onMouseUp={handleTextSelect}>
+      <h1 className="text-2xl font-bold mb-4">Annual Report Viewer</h1>
 
-export default App
+      <div className="flex max-h-[100%]">
+        <motion.div
+          className="border p-2 w-3/4 overflow-auto relative"
+          style={{
+            border: '1px solid rgba(0, 0, 0, 0.3)',
+            height: '60vh',
+          }}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Worker workerUrl={"https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js"}>
+            <Viewer fileUrl={pdfUrl} />
+          </Worker>
+        </motion.div>
+       
+        <div className="w-1/4 p-4 border-l max-h-screen overflow-y-auto">
+          <h2 className="text-lg font-semibold">Highlights</h2>
+          <ul className="list-disc pl-4">
+            {highlights.map((highlight, index) => (
+              <li key={index} className="bg-yellow-200 p-2 my-1 flex justify-between items-center">
+                {highlight.text}
+                <button onClick={() => removeHighlight(index)} className="text-red-500 ml-2">❌</button>
+              </li>
+            ))}
+          </ul>
+          <h2 className="text-lg font-semibold mt-4">Notes</h2>
+          <ul className="list-disc pl-4">
+            {notes.map((note, index) => (
+              <motion.li
+                key={index}
+                className="bg-blue-200 p-2 my-1 flex justify-between items-center"
+                whileHover={{ scale: 1.05 }}
+              >
+                <input
+                  type="text"
+                  className="bg-transparent border-b border-black"
+                  value={note.text}
+                  onChange={(e) => {
+                    const updatedNotes = [...notes];
+                    updatedNotes[index].text = e.target.value;
+                    setNotes(updatedNotes);
+                  }}
+                />
+                <button onClick={() => setNotes(notes.filter((item, i) => i !== index))} className="text-red-500 ml-2">X</button>
+              </motion.li>
+            ))}
+          </ul>
+
+          <h2 className="text-lg font-semibold mt-4">Add a Note</h2>
+          <div className="flex flex-col gap-2">
+            <input type="text" className="border p-2" placeholder="Enter your note..." id="noteText" />
+            <input type="number" className="border p-2" placeholder="Page Number" id="notePage" />
+            <button
+              className="bg-blue-500 text-white p-2"
+              onClick={() => {
+                const noteText = (document.getElementById("noteText") as HTMLInputElement).value;
+                const notePage = parseInt((document.getElementById("notePage") as HTMLInputElement).value);
+                if (noteText && notePage) {
+                  handleAddNote(noteText, notePage);
+                  (document.getElementById("noteText") as HTMLInputElement).value = "";
+                  (document.getElementById("notePage") as HTMLInputElement).value = "";
+                }
+              }}
+            >
+             Add Note
+            </button>
+          </div>
+        </div>
+      </div>
+      {showTooltip && tooltipPosition && (
+        <div
+          className="absolute top-0 bg-gray-800 text-white px-2 py-1 rounded shadow-lg"
+        >
+          <p>Highlight this text?</p>
+          <button className="bg-yellow-400 text-black px-2 py-1 rounded" onClick={addHighlight}>Yes</button>
+          <button className="ml-2 bg-gray-600 px-2 py-1 rounded" onClick={() => setShowTooltip(false)}>No</button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default App;

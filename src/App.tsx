@@ -14,13 +14,27 @@ const App = () => {
   const [showTooltip, setShowTooltip] = useState(false);
 
   useEffect(() => {
-    loadSession("highlights").then((data) => setHighlights(data || []));
-    loadSession("notes").then((data) => setNotes(data || []));
+    const loadData = async () => {
+      const savedHighlights = await loadSession("highlights");
+      const savedNotes = await loadSession("notes");
+
+  
+      const localHighlights = localStorage.getItem("highlights");
+      const localNotes = localStorage.getItem("notes");
+
+      setHighlights(savedHighlights ?? (localHighlights ? JSON.parse(localHighlights) : []));
+      setNotes(savedNotes ?? (localNotes ? JSON.parse(localNotes) : []));
+    };
+
+    loadData();
   }, []);
 
   useEffect(() => {
     saveSession("highlights", highlights);
     saveSession("notes", notes);
+    localStorage.setItem("highlights", highlights.toString())
+    localStorage.setItem("notes", notes.toString())
+
   }, [highlights, notes]);
 
   const handleTextSelect = () => {
@@ -79,7 +93,15 @@ const App = () => {
           </Worker>
         </motion.div>
 
-       
+        {showTooltip && tooltipPosition && (
+          <div
+            className="absolute top-0 bg-gray-800 text-white px-2 py-1 rounded shadow-lg"
+          >
+            <p>Highlight this text?</p>
+            <button className="bg-yellow-400 text-black px-2 py-1 rounded" onClick={addHighlight}>Yes</button>
+            <button className="ml-2 bg-gray-600 px-2 py-1 rounded" onClick={() => setShowTooltip(false)}>No</button>
+          </div>
+        )}
         <div className="w-1/4 p-4 border-l max-h-screen overflow-y-auto">
           <h2 className="text-lg font-semibold">Highlights</h2>
           <ul className="list-disc pl-4">
@@ -134,15 +156,7 @@ const App = () => {
           </div>
         </div>
       </div>
-      {showTooltip && tooltipPosition && (
-        <div
-          className="absolute top-0 bg-gray-800 text-white px-2 py-1 rounded shadow-lg"
-        >
-          <p>Highlight this text?</p>
-          <button className="bg-yellow-400 text-black px-2 py-1 rounded" onClick={addHighlight}>Yes</button>
-          <button className="ml-2 bg-gray-600 px-2 py-1 rounded" onClick={() => setShowTooltip(false)}>No</button>
-        </div>
-      )}
+      
     </div>
   );
 };

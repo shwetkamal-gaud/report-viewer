@@ -144,24 +144,27 @@ const App = () => {
         </div>
 
         <h2 className="text-lg font-semibold mt-4">Add a Note</h2>
-        <div className="flex flex-col gap-2">
-          <input type="text" className="border p-2" placeholder="Enter your note..." id="noteText" />
-          <input type="number" className="border p-2" placeholder="Page Number" id="notePage" />
-          <button
-            className="bg-blue-500 rounded-lg text-white p-2"
-            onClick={() => {
-              const noteText = (document.getElementById("noteText") as HTMLInputElement).value;
-              const notePage = parseInt((document.getElementById("notePage") as HTMLInputElement).value);
-              if (noteText && notePage) {
-                handleAddNote(noteText, notePage);
-                (document.getElementById("noteText") as HTMLInputElement).value = "";
-                (document.getElementById("notePage") as HTMLInputElement).value = "";
-              }
-            }}
-          >
-            Add Note
-          </button>
-        </div>
+       
+          <form className="flex flex-col gap-3" onSubmit={() => {
+            const noteText = (document.getElementById("noteText") as HTMLInputElement).value;
+            const notePage = parseInt((document.getElementById("notePage") as HTMLInputElement).value);
+            if (noteText && notePage) {
+              handleAddNote(noteText, notePage);
+              (document.getElementById("noteText") as HTMLInputElement).value = "";
+              (document.getElementById("notePage") as HTMLInputElement).value = "";
+            }
+          }}>
+            <input required type="text" className="border p-2" placeholder="Enter your note..." id="noteText" />
+            <input required type="number" className="border p-2" placeholder="Page Number" id="notePage" />
+            <motion.button
+              className="bg-blue-500 cursor-pointer rounded-lg text-white p-2"
+              type="submit"
+              whileTap={{scale:0.8}}
+            >
+              Add Note
+            </motion.button>
+          </form>
+      
       </div>
     </div>
   );

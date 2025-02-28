@@ -27,6 +27,7 @@ const App = () => {
     };
 
     loadData();
+    setPdfUrl(localPdf)
   }, []);
 
   useEffect(() => {
@@ -130,7 +131,7 @@ const App = () => {
                     setNotes(updatedNotes);
                   }}
                 />
-                <button onClick={() => setNotes(notes.filter((item, i) => i !== index))} className="text-red-500 ml-2">X</button>
+                <button onClick={() => setNotes(notes.filter((_, i) => i !== index))} className="text-red-500 ml-2">X</button>
               </motion.li>
             ))}
           </ul>
